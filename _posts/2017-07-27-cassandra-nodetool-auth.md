@@ -1,6 +1,6 @@
 ---
 title:  "Cassandra nodetool authentication using the internal authorizer"
-date:   2017-07-25 00:00:00 -0600
+date:   2017-07-27 00:00:00 -0600
 categories: cassandra nodetool
 ---
 I learned about a new feature in Cassandra 3.6+ today, the ability to enable nodetool authentication by using Cassandra's [built-in authorizer.](http://docs.datastax.com/en/cassandra/3.0/cassandra/configuration/secureConfigNativeAuth.html) This turned out to be very useful, as I no longer need to manage a username/password in CQL in addition to a username/password in JMX. I'll quickly go through the steps I took to set this up. I did it in Docker, but the steps should be the same in a VM as well.
