@@ -79,7 +79,7 @@ analytics:
 author:
   name             : "Daniel Parker"
   avatar           : # path of avatar image, e.g. "/assets/images/bio-photo.jpg"
-  bio              : "Lead Engineer @ Target. Microservices, Cassandra, Continuous Deployment"
+  bio              : "Principal Engineer @ Target. Microservices, Cassandra, Continuous Deployment"
   location         : "Minneapolis, MN"
   email            : "dcparker88@gmail.com"
   uri              :
