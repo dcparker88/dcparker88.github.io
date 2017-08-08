@@ -24,3 +24,4 @@ Some technologies that I work with/am intereted in:
 * Linux
 * OpenStack
 * Kubernetes
+* Drone

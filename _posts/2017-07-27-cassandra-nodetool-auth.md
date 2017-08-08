@@ -45,4 +45,4 @@ Next steps: create a unique username/password with cql, and try using it to auth
 
 ---
 ### Further reading:
-Here is an [example](https://github.com/dcparker88/cassandra-kubernetes/blob/master/image/Dockerfile#L22-L24) of me configuring this type of auth in a Docker container, that I am going to use in Kubernetes. This will be useful because I will only need to have one set of credentials that I manage through cql. I won't need to manage a separate set, and a separate jmx.password file with those credentials.
+Here is an [example](https://github.com/dcparker88/cassandra-kubernetes/blob/f9d1c769c34111354e6973f2133430e12a24a26c/image/Dockerfile#L22-L24) of me configuring this type of auth in a Docker container, that I am going to use in Kubernetes. This will be useful because I will only need to have one set of credentials that I manage through cql. I won't need to manage a separate set, and a separate jmx.password file with those credentials.
