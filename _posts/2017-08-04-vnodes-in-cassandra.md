@@ -1,7 +1,52 @@
 ---
 title:  "vnodes between datacenters in Cassandra"
 date:   2017-08-04 00:00:00 -0600
+updated: 2017-09-08 00:00:00 -0600
 categories: cassandra vnodes TIL
+---
+# Update 9/8/17
+I have recently been testing this more, since the need to increase the number of vnodes has become a priority. I created a new 4 node cluster to test the issue I ran in to in my post below. I will be doing all of this testing on `2.2.9`, as that's the version we have in prod. I decided to try adding a node with a larger number of vnodes, testing 2 different ways:
+* Test adding a node to the same DC with double the vnodes
+* Test adding a node to a new DC with double the vnodes
+
+The first test (same DC) went well, and seems to have worked. Here is the `nodetool status` after adding:
+```
+Datacenter: dc1
+===============
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address       Load       Tokens       Owns (effective)  Host ID                               Rack
+UN  192.168.1.1   7.29 GB    12           12.9%             9f4b145d-1f1a-4f19-8772-894cdd7687b2  dc1
+UN  192.168.1.2   16.44 GB   12           26.3%             cdaea723-926b-4583-98ab-1b9307f65cf6  dc1
+UN  192.168.1.3   24.29 GB   24           60.9%             1d7793da-14a7-4a29-9d93-c7829925e62d  dc1
+```
+
+So it looks like adding a node with more vnodes will work in the same DC. Now for the next test - adding a node in a new DC with a larger number of vnodes.
+
+Here is the `nodetool status` after.
+```
+(1:83)# nodetool status
+Datacenter: dc1
+===============
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address       Load       Tokens       Owns (effective)  Host ID                               Rack
+UN  192.168.1.1   18.11 GB   12           50.7%             9f4b145d-1f1a-4f19-8772-894cdd7687b2  dc1
+UN  192.168.1.2   16.51 GB   12           49.3%             cdaea723-926b-4583-98ab-1b9307f65cf6  dc1
+Datacenter: dc1-2
+=================
+Status=Up/Down
+|/ State=Normal/Leaving/Joining/Moving
+--  Address       Load       Tokens       Owns (effective)  Host ID                               Rack
+UJ  192.168.1.3   16.09 GB   24           ?                 26b4c332-546e-45d3-8a08-8e0a5c87345d  dc1-2
+```
+
+It seems like a new DC works as well. So both of these are options for moving forward.
+
+I will be doing this exercise in prod, so I will try to update this post after I am done. The reason I wrote this post is because I couldn't get a remote node to join and stream the full dataset when it had a larger number of tokens. Now that I have tested it some more, I have no idea what was wrong before. There must have been some other settings that caused the issue - I was able to successfully add a node with a higher number of vnodes. One thing I do want to test is adding a node with a higher vnode number than all of the other nodes combined. That could be a reason for the issue I saw below.
+
+I will update again with any more tests and what the results of the production change are.
+
 ---
 Since I promised to write about what I learn in my day-to-day work, here's something I ran in to recently while expanding a Cassandra cluster. Here's the scenario:
 
