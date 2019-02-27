@@ -4,10 +4,10 @@ date:   2019-02-21 00:00:00 -0600
 categories: haproxy blue-green deployments canary nomad
 ---
 # Overview
-I've recently started deploying HAProxy to replace Nginx for most of our app load balancing. You can read more about my decision to switch from Nginx to HAProxy [in this blog post.]() One reason I am switching is because of DNS SRV record support, brought on by our use of [Nomad at Target.](https://www.hashicorp.com/resources/nomad-scaling-target-microservices-across-cloud) Another feature Nomad gives us is blue/green and canary deployments. I needed to figure out how to integrate these features with our edge load balancer - HAProxy.
+I've recently started deploying HAProxy to replace Nginx for most of our application load balancing. You can read more about my decision to switch from Nginx to HAProxy [in this blog post.]() One reason I am switching is because of DNS SRV record support, brought on by our use of [Nomad at Target.](https://www.hashicorp.com/resources/nomad-scaling-target-microservices-across-cloud) Another feature Nomad gives us is blue/green and canary deployments. I needed to figure out how to integrate these features with our edge load balancer - HAProxy.
 
 ## Nomad
-Nomad gives us the ability to do blue/green and canary [deployments](https://www.nomadproject.io/guides/operating-a-job/update-strategies/blue-green-and-canary-deployments.html) Nomad differentiates "live" traffic from "canary" (or blue/green) by using Consul tags. For example, we may have 4 microservices deployed that are active. These would have an `live` [tag](https://www.consul.io/docs/agent/services.html) in Consul. If we deployed a canary, a 5th microservice would be deployed with a `canary` tag. You can see this configuration in our Nomad job file:
+Nomad gives us the ability to do blue/green and canary [deployments.](https://www.nomadproject.io/guides/operating-a-job/update-strategies/blue-green-and-canary-deployments.html) Nomad differentiates "live" traffic from "canary" (or blue/green) by using Consul tags. For example, we may have 4 microservices deployed that are active. These would have a `live` [tag](https://www.consul.io/docs/agent/services.html) in Consul. If we deployed a canary, a 5th microservice would be deployed with a `canary` tag. You can see this configuration in our Nomad job file:
 
 ```
 job "canary-deployments" {
@@ -36,7 +36,7 @@ service {
 The fist piece `canary = 1` tells Nomad to enable canary deployments. The second, `tags = [ "live" ]`, tags everything currently running with the `live` tag. The last, `canary_tags = [ "canary" ]`, tags any ongoing canary deployment with the `canary` tag. These tags are important, as they now allow us to route specific requests to the proper backend using HAProxy.
 
 ## HAProxy
-Now we want to set up HAproxy to properly route us to the backend we expect. In the simplest configuration, we'll have 2 backends: the live backend, and the canary backend. Let's take a peek at how that looks:
+Now we want to set up HAProxy to properly route us to the backend we expect. In the simplest configuration, we'll have 2 backends: the live backend, and the canary backend. Let's take a peek at how that looks:
 
 ```
 frontend http-in
@@ -54,7 +54,9 @@ backend api-v1-canary
 
 ```
 
-This sets up 3 things. A frontend in HAProxy that is listening for traffic on port 80. It also sets up 2 backends we can route traffic to - `api-v1` and `api-v1-canary`. Since we're using Consul DNS records to generate the backend list, we can also use Consul tags. Backend `api-v1` will only find services registered with the `live` tag, and `api-v1-canary` will only find backends with the `canary` tag. We also add an option, `reqrep ^([^\ :]*)\ /canary/(.*)     \1\ /\2` - this will strip off the `/canary/` (we'll cover this later) so we don't pass it to our backend. That way we don't have to tell our APIs to look for a `/canary/` path - to the API all requests are the same.
+This sets up 3 things. A frontend in HAProxy that is listening for traffic on port 80. It also sets up 2 backends we can route traffic to - `api-v1` and `api-v1-canary`. Since we're using Consul DNS records to generate the backend list, we can also use Consul tags in the URL.
+
+Backend `api-v1` will only find services registered with the `live` tag, and `api-v1-canary` will only find backends with the `canary` tag. We also add an option, `reqrep ^([^\ :]*)\ /canary/(.*)     \1\ /\2` - this will strip off the `/canary/` (we'll cover this later) so we don't pass it to our backend. That way we don't have to tell our APIs to look for a `/canary/` path - to the API all requests are the same.
 
 ### Routing Based On Request Path
 So now, let's talk about routing to these backends. The first option is to route based on the request path. We can have the following config:
